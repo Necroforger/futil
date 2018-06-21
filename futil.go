@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"sort"
 	"strings"
 )
 
@@ -16,10 +17,12 @@ var (
 )
 
 // Ls lists the contents of a directory
-// in the list
+// And sorts them with directories coming first
 //    dir : directory to list the contents of
 func Ls(dir string) ([]os.FileInfo, error) {
-	return ioutil.ReadDir(dir)
+	files, err := ioutil.ReadDir(dir)
+	sort.Sort(FileInfoByType(files))
+	return files, err
 }
 
 // Walk recursively walks through a directory
