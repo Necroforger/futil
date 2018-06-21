@@ -108,9 +108,13 @@ func CpDir(from, to string) error {
 //    from  : location to move from
 //    to    : location to move to
 func Mv(from, to string) error {
-	err := os.Rename(from, to)
-	if err != nil {
-		return Cp(from, to)
+	err := os.Rename(from, to) // Attempt to rename the file,
+	if err != nil {            // If it fails, fall back to copying and deleting it
+		err := Cp(from, to)
+		if err != nil {
+			return err
+		}
+		os.Remove(from)
 	}
 	return nil
 }
