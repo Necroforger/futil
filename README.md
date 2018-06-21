@@ -2,6 +2,7 @@
 
 - [Futil](#futil)
     - [Download](#download)
+    - [TODO](#todo)
     - [Examples](#examples)
 
 <!-- /TOC -->
@@ -12,6 +13,9 @@ A small utility library for managing files. Created primarily for managing my mu
 
 ## Download
 `go get -u github.com/Necroforger/futil`
+
+## TODO
+- Add progress tracking
 
 ## Examples
 
