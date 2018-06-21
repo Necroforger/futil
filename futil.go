@@ -114,7 +114,7 @@ func Mv(from, to string) error {
 		if err != nil {
 			return err
 		}
-		os.Remove(from)
+		return os.Remove(from)
 	}
 	return nil
 }
