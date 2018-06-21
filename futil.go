@@ -138,22 +138,17 @@ func MvDir(from, to string) error {
 	return nil
 }
 
-// ZipDir zips the directory dir to dest
-//     path : path to zip. if a directory, recursively zip it.
-//     dest : ouput zip file
-func ZipDir(source, dest string) error {
-	f, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE, 0666)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
+// MZipDir zips a file to an io.Writer
+//     source : source directory to zip from
+//     dest   : destination io.Writer to zip to
+func MZipDir(source string, dest io.Writer) error {
 
 	// Add a slash to the end of the path
 	// So the prefix is trimmed properly later on
 	source = path.Clean(source) + "/"
 
-	zwr := zip.NewWriter(f)
-	err = Walk(source, func(p string, info os.FileInfo) error {
+	zwr := zip.NewWriter(dest)
+	err := Walk(source, func(p string, info os.FileInfo) error {
 
 		// remove the root folder name from the archive
 		npath := strings.TrimPrefix(p, source)
@@ -206,22 +201,25 @@ func ZipDir(source, dest string) error {
 	return nil
 }
 
-// Unzip unzips a directory
-//     from : location of zip file
-//     to   : destination folder
-func Unzip(from, to string) error {
-	f, err := os.OpenFile(from, os.O_RDONLY, 0666)
+// ZipDir zips the directory dir to dest
+//     path : path to zip. if a directory, recursively zip it.
+//     dest : ouput zip file
+func ZipDir(source, dest string) error {
+	f, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	stat, err := f.Stat()
-	if err != nil {
-		return err
-	}
+	return MZipDir(source, f)
+}
 
-	rd, err := zip.NewReader(f, stat.Size())
+// MUnzip unzips an io.Reader zip file into the directory to
+//    from  : source io.Reader
+//    size  : total size of the zip file in bytes
+//    to    : location of destination folder
+func MUnzip(from io.ReaderAt, size int64, to string) error {
+	rd, err := zip.NewReader(from, size)
 	if err != nil {
 		return err
 	}
@@ -255,4 +253,22 @@ func Unzip(from, to string) error {
 	}
 
 	return nil
+}
+
+// Unzip unzips a directory
+//     from : source zip file
+//     to   : destination to unzip into
+func Unzip(from, to string) error {
+	f, err := os.OpenFile(from, os.O_RDONLY, 0666)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	stat, err := f.Stat()
+	if err != nil {
+		return err
+	}
+
+	return MUnzip(f, stat.Size(), to)
 }
