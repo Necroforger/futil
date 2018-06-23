@@ -1,3 +1,4 @@
+# Futil 
 <!-- TOC -->
 
 - [Futil](#futil)
@@ -7,7 +8,6 @@
 
 <!-- /TOC -->
 
-# Futil 
 
 A small utility library for managing files. Created primarily for managing my music library.
 
