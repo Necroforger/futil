@@ -15,7 +15,7 @@ A small utility library for managing files. Created primarily for managing my mu
 `go get -u github.com/Necroforger/futil`
 
 ## TODO
-- Add progress tracking
+- Add progress tracking via channels
 
 ## Examples
 
