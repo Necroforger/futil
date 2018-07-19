@@ -6,7 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 )
@@ -44,7 +44,7 @@ func Walk(dir string, fn func(string, os.FileInfo) error) error {
 				}
 				return err
 			}
-			err = Walk(path.Join(dir, v.Name()), fn)
+			err = Walk(filepath.Join(dir, v.Name()), fn)
 			if err != nil {
 				return err
 			}
@@ -65,7 +65,7 @@ func Walk(dir string, fn func(string, os.FileInfo) error) error {
 //    fn    :  walk function
 func WalkFromTo(from string, to string, fn func(from string, to string, info os.FileInfo) error) error {
 	return Walk(from, func(source string, info os.FileInfo) error {
-		return fn(source, path.Join(to, strings.TrimPrefix(source, from)), info)
+		return fn(source, filepath.Join(to, strings.TrimPrefix(source, from)), info)
 	})
 }
 
@@ -99,7 +99,7 @@ func CpDir(from, to string) error {
 		if info.IsDir() {
 			return nil
 		}
-		return Cp(path.Join(from, info.Name()), path.Join(to, info.Name()))
+		return Cp(filepath.Join(from, info.Name()), filepath.Join(to, info.Name()))
 	})
 }
 
@@ -130,9 +130,12 @@ func MvDir(from, to string) error {
 		// copying or moving the files individually
 		return WalkFromTo(from, to, func(f, t string, info os.FileInfo) error {
 			if info.IsDir() {
+				// Attempt to create the directory
+				// if it does not exist
+				os.Mkdir(filepath.Join(t, info.Name()), 0666)
 				return nil
 			}
-			return Mv(path.Join(from, info.Name()), path.Join(to, info.Name()))
+			return Mv(filepath.Join(f, info.Name()), filepath.Join(t, info.Name()))
 		})
 	}
 	return nil
@@ -145,7 +148,7 @@ func MZipDir(source string, dest io.Writer) error {
 
 	// Add a slash to the end of the path
 	// So the prefix is trimmed properly later on
-	source = path.Clean(source) + "/"
+	source = filepath.Clean(source) + "/"
 
 	zwr := zip.NewWriter(dest)
 	err := Walk(source, func(p string, info os.FileInfo) error {
@@ -158,7 +161,7 @@ func MZipDir(source string, dest io.Writer) error {
 			return err
 		}
 		// Remove the root directory name from the archive
-		header.Name = path.Join(npath, info.Name())
+		header.Name = filepath.Join(npath, info.Name())
 
 		// List the file as a directory in the archive
 		if info.IsDir() {
@@ -177,7 +180,7 @@ func MZipDir(source string, dest io.Writer) error {
 			return nil
 		}
 
-		f, err := os.OpenFile(path.Join(p, info.Name()), os.O_RDONLY, 0666)
+		f, err := os.OpenFile(filepath.Join(p, info.Name()), os.O_RDONLY, 0666)
 		if err != nil {
 			return err
 		}
@@ -229,7 +232,7 @@ func MUnzip(from io.ReaderAt, size int64, to string) error {
 	for _, v := range rd.File {
 		// Do not unzip directories
 		if v.FileInfo().IsDir() {
-			os.MkdirAll(path.Join(to, v.Name), 0666)
+			os.MkdirAll(filepath.Join(to, v.Name), 0666)
 			continue
 		}
 
@@ -238,7 +241,7 @@ func MUnzip(from io.ReaderAt, size int64, to string) error {
 			return err
 		}
 		defer zf.Close()
-		fpath := path.Join(to, v.Name)
+		fpath := filepath.Join(to, v.Name)
 
 		df, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
