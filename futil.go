@@ -110,6 +110,7 @@ func CpDir(from, to string) error {
 func Mv(from, to string) error {
 	err := os.Rename(from, to) // Attempt to rename the file,
 	if err != nil {            // If it fails, fall back to copying and deleting it
+		// log.Println(err)
 		err := Cp(from, to)
 		if err != nil {
 			return err
@@ -128,7 +129,7 @@ func MvDir(from, to string) error {
 	if err != nil {
 		// If renaming the directory fails, fall back to
 		// copying or moving the files individually
-		return WalkFromTo(from, to, func(f, t string, info os.FileInfo) error {
+		err = WalkFromTo(from, to, func(f, t string, info os.FileInfo) error {
 			if info.IsDir() {
 				// Attempt to create the directory
 				// if it does not exist
@@ -137,6 +138,12 @@ func MvDir(from, to string) error {
 			}
 			return Mv(filepath.Join(f, info.Name()), filepath.Join(t, info.Name()))
 		})
+		if err != nil {
+			return err
+		}
+
+		// If there were no errors, try to remove the original directory
+		os.RemoveAll(from)
 	}
 	return nil
 }

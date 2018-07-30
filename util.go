@@ -6,14 +6,7 @@ import "os"
 type FileInfoByType []os.FileInfo
 
 func (f FileInfoByType) Less(a, b int) bool {
-	var aa, bb = 1, 1
-	if f[a].IsDir() {
-		aa = 0
-	}
-	if f[b].IsDir() {
-		bb = 0
-	}
-	return aa < bb
+	return f[a].IsDir() && !f[b].IsDir()
 }
 
 func (f FileInfoByType) Len() int {
